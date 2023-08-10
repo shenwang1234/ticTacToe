@@ -16,15 +16,15 @@
 typedef struct{
 	//overhead of 1 per array since only 9 indexes are used 
 	char boardPositions[10];
-	int positionScore[10];
 	int emptySpace;
 }board; //if typedef not used then struct keyword has to be used when declaring board, since it is
 //type struct, but using typedef, we define a type called board, instead of a struct type called 
 //board
 
+int checkWin(board* gameBoard);
+int findNextMove(board* gameBoard);
 void printIntArray(int* array, int size);
-int firstEmptySpot(board* gameBoard);
-int miniMax(board* gameBoard);
+int miniMax(board* gameBoard, int initial);
 void deepCopyBoard(board* copy, const board* original);
 int* findArrayOfempties(board* gameBoard);
 board** findChildren(board* gameBoard);
@@ -42,10 +42,8 @@ board* initBoard() {
 		printf("memory allocation failed.\n");
 		exit(EXIT_FAILURE);
 	}
-	for( int i = 0; i<10; i++){
-		gameBoard->boardPositions[i] = '0'+ i;
-		gameBoard->positionScore[i] = 0;
-	}
+	for( int i = 0; i<10; i++) gameBoard->boardPositions[i] = '0'+ i;
+	
 	gameBoard->emptySpace=9;
 	return gameBoard;
 
@@ -74,6 +72,7 @@ void move(board* gameBoard,int position){//i indicate player num
 
 int* findArrayOfempties(board* gameBoard){
 	int numOfempties = gameBoard->emptySpace;
+	if (numOfempties==0) return NULL;
 	int* array = (int*) malloc(numOfempties*sizeof(int));
 	int index = 0;
 	for(int i= 1; i<10; i++){
@@ -85,8 +84,9 @@ int* findArrayOfempties(board* gameBoard){
 }
 
 board** findChildren(board* parent){
-	int* availablePoisition = findArrayOfempties(parent);
 	int numOfChildren = parent->emptySpace;
+	if(numOfChildren==0) return NULL;
+	int* availablePoisition = findArrayOfempties(parent);
 	board** listOfChildren = (board**) malloc(numOfChildren*sizeof(board));
 	for (int i = 0; i<numOfChildren;i++){
 		board* child = initBoard();
@@ -107,7 +107,7 @@ int compareLine(board* gameBoard, int a, int b, int c){
 	else return 0;//no winner
 }
 
-int checkWin(board* gameBoard) {
+int checkWin(board* gameBoard) {// 0 no winner (can be tie or game havent ended yet), 10 if player 1 won, -10 for player2
     int score = 0;
     //check 8 straight lines
     if ((score = compareLine(gameBoard, 1, 2, 3)) != 0) return score;
@@ -123,19 +123,31 @@ int checkWin(board* gameBoard) {
 }
 
 
-
-
-int miniMax(board* gameBoard){ //depth is measured by empty spaces
+int miniMax(board* gameBoard, int initial){ //depth is measured by empty spaces
 	int score = 0;
 	if (gameBoard->emptySpace == 0 || checkWin(gameBoard)!=0) {
 		return checkWin(gameBoard);
 		freeBoardMem(gameBoard);
 	}
+	if(initial){
+		int rating = -1000;
+		int eval = 0;
+		int position = 0;
+		board** children = findChildren(gameBoard);
+		for(int i = 0;i<gameBoard->emptySpace;i++){ //bot is first 
+			eval = miniMax(children[i], 0); //false since next move will be opponent
+			if(eval > rating){
+				rating = eval;
+				position = i;
+			}
+		}
+		return position;
+	}
 	if (gameBoard->emptySpace % 2 != 0){ // maximizing player, player 1, if odd
 		int eval = 0;
 		board** children = findChildren(gameBoard);
 		for(int i = 0;i<gameBoard->emptySpace;i++){
-			eval = miniMax(children[i]); //false since next move will be opponent
+			eval = miniMax(children[i], 0); //false since next move will be opponent
 			score += eval;
 		}
 		return score;
@@ -145,11 +157,17 @@ int miniMax(board* gameBoard){ //depth is measured by empty spaces
 		int eval = 0;
 		board** children = findChildren(gameBoard);
 		for(int i = 0;i<gameBoard->emptySpace;i++){
-			eval = miniMax(children[i]); //false since next move will be opponent
+			eval = miniMax(children[i], 0); //false since next move will be opponent
 			score += eval;
 		}
 		return score;
 	}
+}
+
+int findNextMove(board* gameBoard){
+	int relativePosition = miniMax(gameBoard, 1);
+	int* listOfEmpty = findArrayOfempties(gameBoard);
+	return listOfEmpty[relativePosition];
 }
 
 /*
@@ -194,8 +212,8 @@ void printBoardList(board** list, int num){
 		printBoard(list[i]);
 	}
 }
-
-void main(){
+/*
+int main(){
 	board* board1 = initBoard();
 	move(board1, 2); //p1 need at least 5 round to win the game
 	move(board1, 1);
@@ -203,6 +221,10 @@ void main(){
 	move(board1, 3);
 	move(board1, 6);
 	move(board1, 5);
-	miniMax(board1);
-
+	printf("%d\n",findNextMove(board1));
+	move(board1, 7);
+	move(board1, 8);
+	printf("%d\n",findNextMove(board1));
 }
+*/
+
