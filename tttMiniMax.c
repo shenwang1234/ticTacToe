@@ -1,10 +1,6 @@
 /*
 1. private access modifer to prevent elements of board being accessed without a function
-
-
 */
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,27 +39,21 @@ board* initBoard() {
 		exit(EXIT_FAILURE);
 	}
 	for( int i = 0; i<10; i++) gameBoard->boardPositions[i] = '0'+ i;
-	
 	gameBoard->emptySpace=9;
 	return gameBoard;
-
 }
-
 
 void deepCopyBoard(board* copy, const board* original) {
     if (copy == NULL) {
         printf("Memory allocation failed.\n");
         exit(EXIT_FAILURE);
     }
-    
     memcpy(copy, original, sizeof(board));
 }
-
 
 void freeBoardMem(board* gameBoard) {
     free(gameBoard);
 }
-
 
 void move(board* gameBoard,int position){//i indicate player num 
 	gameBoard->boardPositions[position] = (gameBoard->emptySpace % 2 == 0) ? Player2: Player1; 
@@ -95,7 +85,7 @@ board** findChildren(board* parent){
 		listOfChildren[i]=child;
 	}
 	return listOfChildren;
- 
+
 }
 
 
@@ -118,7 +108,6 @@ int checkWin(board* gameBoard) {// 0 no winner (can be tie or game havent ended 
     else if ((score = compareLine(gameBoard, 3, 6, 9)) != 0) return score;
     else if ((score = compareLine(gameBoard, 1, 5, 9)) != 0) return score;
     else if ((score = compareLine(gameBoard, 3, 5, 7)) != 0) return score;
-    
     return 0;
 }
 
@@ -152,7 +141,6 @@ int miniMax(board* gameBoard, int initial){ //depth is measured by empty spaces
 		}
 		return score;
 	}
-
 	else{				  // minimizing player player 2 
 		int eval = 0;
 		board** children = findChildren(gameBoard);
@@ -184,28 +172,22 @@ void printIntArray(int* array, int size) {
     printf("\n");
 }
 
+//for debugging
 void printBoard(board* gameBoard){
 	printf("\n\n\tTic Tac Toe\n\n");
-
     printf("\tPlayer 1 (X)  -  Player 2 (O)\n\n\n");
-
-
     printf("\t     |     |     \n");
     printf("\t  %c  |  %c  |  %c \n", gameBoard->boardPositions[1], gameBoard->boardPositions[2], gameBoard->boardPositions[3]);
-
     printf("\t_____|_____|_____\n");
     printf("\t     |     |     \n");
-
     printf("\t  %c  |  %c  |  %c \n", gameBoard->boardPositions[4], gameBoard->boardPositions[5], gameBoard->boardPositions[6]);
-
     printf("\t_____|_____|_____\n");
     printf("\t     |     |     \n");
-
     printf("\t  %c  |  %c  |  %c \n", gameBoard->boardPositions[7], gameBoard->boardPositions[8], gameBoard->boardPositions[9]);
-
     printf("\t     |     |     \n\n");
 }
 
+//for debugging
 void printBoardList(board** list, int num){
 	for(int i =0; i<num ;i++){
 		printf("child %d",i);
