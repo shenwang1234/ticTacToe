@@ -27,7 +27,6 @@ board** findChildren(board* gameBoard);
 board* initBoard();
 void printBoard(board* gameBoard);
 void move(board* gameBoard, int position);
-void freeBoardMem(board* gameBoard);
 void printBoardList(board** list, int num);
 
 board* initBoard() {
@@ -49,10 +48,6 @@ void deepCopyBoard(board* copy, const board* original) {
         exit(EXIT_FAILURE);
     }
     memcpy(copy, original, sizeof(board));
-}
-
-void freeBoardMem(board* gameBoard) {
-    free(gameBoard);
 }
 
 void move(board* gameBoard,int position){//i indicate player num 
@@ -84,6 +79,7 @@ board** findChildren(board* parent){
 		move(child, availablePoisition[i]);
 		listOfChildren[i]=child;
 	}
+	free(availablePoisition);
 	return listOfChildren;
 
 }
@@ -108,29 +104,33 @@ int checkWin(board* gameBoard) {// 0 no winner (can be tie or game havent ended 
     else if ((score = compareLine(gameBoard, 3, 6, 9)) != 0) return score;
     else if ((score = compareLine(gameBoard, 1, 5, 9)) != 0) return score;
     else if ((score = compareLine(gameBoard, 3, 5, 7)) != 0) return score;
-    return 0;
+    return 0; 
 }
 
 
 int miniMax(board* gameBoard, int initial){ //depth is measured by empty spaces
 	int score = 0;
 	if (gameBoard->emptySpace == 0 || checkWin(gameBoard)!=0) {
-		return checkWin(gameBoard);
-		freeBoardMem(gameBoard);
+		int winVal = checkWin(gameBoard);
+		return winVal;
 	}
 	if(initial){
 		int rating = -1000;
 		int eval = 0;
-		int position = 0;
+		int positionToTake = 0;
 		board** children = findChildren(gameBoard);
 		for(int i = 0;i<gameBoard->emptySpace;i++){ //bot is first 
 			eval = miniMax(children[i], 0); //false since next move will be opponent
 			if(eval > rating){
 				rating = eval;
-				position = i;
+				positionToTake = i;
 			}
 		}
-		return position;
+		for (int i = 0;i<gameBoard->emptySpace;i++){
+			free(children[i]);
+		}
+		free(children);
+		return positionToTake; //return the calculated poistion for next move
 	}
 	if (gameBoard->emptySpace % 2 != 0){ // maximizing player, player 1, if odd
 		int eval = 0;
@@ -139,6 +139,10 @@ int miniMax(board* gameBoard, int initial){ //depth is measured by empty spaces
 			eval = miniMax(children[i], 0); //false since next move will be opponent
 			score += eval;
 		}
+		for (int i = 0;i<gameBoard->emptySpace;i++){
+			free(children[i]);
+		}
+		free(children);
 		return score;
 	}
 	else{				  // minimizing player player 2 
@@ -148,6 +152,10 @@ int miniMax(board* gameBoard, int initial){ //depth is measured by empty spaces
 			eval = miniMax(children[i], 0); //false since next move will be opponent
 			score += eval;
 		}
+		for (int i = 0;i<gameBoard->emptySpace;i++){
+			free(children[i]);
+		}
+		free(children);
 		return score;
 	}
 }
@@ -155,7 +163,9 @@ int miniMax(board* gameBoard, int initial){ //depth is measured by empty spaces
 int findNextMove(board* gameBoard){
 	int relativePosition = miniMax(gameBoard, 1);
 	int* listOfEmpty = findArrayOfempties(gameBoard);
-	return listOfEmpty[relativePosition];
+	int nextMoveVal = listOfEmpty[relativePosition];
+	free(listOfEmpty);
+	return nextMoveVal;
 }
 
 /*
